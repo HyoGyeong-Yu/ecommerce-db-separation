@@ -39,3 +39,21 @@ resource "aws_iam_instance_profile" "app_ec2" {
   name = "${var.project_name}-app-profile"
   role = aws_iam_role.app_ec2.name
 }
+
+# 장바구니 테이블 읽기/쓰기 권한 (이것도 최소권한 — cart 테이블만)
+resource "aws_iam_role_policy" "dynamodb_cart" {
+  name = "${var.project_name}-dynamodb-cart"
+  role = aws_iam_role.app_ec2.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "dynamodb:PutItem",
+        "dynamodb:GetItem",
+        "dynamodb:Query"
+      ]
+      Resource = aws_dynamodb_table.cart.arn
+    }]
+  })
+}
