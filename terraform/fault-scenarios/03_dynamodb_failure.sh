@@ -1,14 +1,9 @@
-#!/bin/bash
-# ============================================================================
-# 시나리오 3: DynamoDB 쓰기 실패 (IAM 권한 문제)
-# 재현: EC2의 IAM Role에서 DynamoDB 쓰기 권한 제거 → AccessDenied
-# 포인트: 최소권한(least-privilege)이 실제로 작동함을 증명
-# ============================================================================
+
 source ./config.sh
 
 # IAM Role 이름 (terraform 기준)
-IAM_ROLE_NAME="${PROJECT_NAME}-app-role"
-POLICY_NAME="dynamodb-cart-access"
+IAM_ROLE_NAME="ecommerce-portfolio-app-role"
+POLICY_NAME="ecommerce-portfolio-dynamodb-cart"
 
 echo "=========================================="
 echo " 시나리오 3: DynamoDB 쓰기 실패 (IAM)"
