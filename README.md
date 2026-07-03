@@ -20,34 +20,44 @@
 ```
 
 ---
-
 ## 🏗️ 아키텍처
 
+```mermaid
+graph TB
+    subgraph VPC["AWS VPC (ap-northeast-2)"]
+        subgraph PublicSubnet["Public Subnet"]
+            EC2["EC2 Instance<br/>(Application Server)"]
+        end
+        
+        subgraph PrivateSubnet["Private Subnet"]
+            MemberDB["RDS MySQL<br/>(Member DB)<br/>Instance 1"]
+            PaymentDB["RDS MySQL<br/>(Payment DB)<br/>Instance 2"]
+        end
+        
+        EC2 -->|app-ec2-role| MemberDB
+        EC2 -->|app-ec2-role| PaymentDB
+    end
+    
+    DynamoDB["DynamoDB<br/>(Shopping Cart)"]
+    SecretsManager["Secrets Manager<br/>(DB Credentials)"]
+    
+    EC2 -->|GetSecretValue| SecretsManager
+    EC2 -->|PutItem/GetItem| DynamoDB
+    
+    CloudWatch["CloudWatch Alarms<br/>(10 metrics)"]
+    SNS["SNS Topic<br/>(Notifications)"]
+    
+    MemberDB --> CloudWatch
+    PaymentDB --> CloudWatch
+    DynamoDB --> CloudWatch
+    CloudWatch --> SNS
+    
+    IAM["IAM Roles<br/>• app-ec2-role<br/>• ssm-ec2-role<br/>(Least Privilege)"]
+    
+    EC2 --> IAM
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     AWS VPC (ap-northeast-2)                │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ Public Subnet                                        │   │
-│  │  • EC2 Instance (Application Server)                 │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                            ↓                                 │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ Private Subnet (RDS)                                 │   │
-│  │  • Member DB (RDS MySQL)  ──┐                        │   │
-│  │  • Payment DB (RDS MySQL) ──┼─ 분리된 인스턴스      │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────┐
-│ AWS 매니지드 서비스                                         │
-│  • DynamoDB (Shopping Cart)                                 │
-│  • Secrets Manager (DB 자격증명)                            │
-│  • CloudWatch (모니터링 및 알람)                            │
-│  • SNS (알림 전송)                                         │
-└─────────────────────────────────────────────────────────────┘
-```
+---
 
 ### 핵심 설계 결정
 
