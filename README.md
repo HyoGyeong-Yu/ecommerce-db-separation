@@ -199,7 +199,26 @@ bash 03_dynamodb_failure.sh
 cd fault-scenarios
 bash 04_ec2_failure.sh
 ```
+### 5. AZ 장애 — Multi-AZ 자동 Failover
+**증상**: 회원 DB의 주 인스턴스가 위치한 가용 영역(AZ) 장애 (앱 설정 변경 없이 1~2분 내 스탠바이 AZ로 자동 전환)
 
+시나리오 1~4가 장애를 **감지하고 수동으로 복구**하는 훈련이라면, 이 시나리오는 사람 개입 없이 **AWS가 자동으로 복구**하는 고가용성(HA) 구조를 검증합니다.
+
+📖 [런북 보기](fault-scenarios/runbook-05-multiaz-failover.md)
+
+```bash
+# 1) Multi-AZ 활성화 (전환 10~15분, 다운타임 없음)
+cd terraform
+terraform apply -var="member_db_multi_az=true"
+
+# 2) 시뮬레이션 실행 (강제 failover → AZ 전환 확인)
+cd ../fault-scenarios
+bash 05_multiaz_failover.sh
+
+# 3) 검증 후 비용 절감을 위해 원복
+cd ../terraform
+terraform apply -var="member_db_multi_az=false"
+```
 ---
 
 ## 📊 주요 학습 포인트
@@ -269,6 +288,22 @@ Secrets Manager:
   - 중앙집중식 관리 ✓
   - 자동 회전 가능 ✓
   - IAM으로 접근 통제 ✓
+```
+
+### "왜 Multi-AZ를 상시로 켜두지 않았나?"
+```
+Multi-AZ를 상시 활성화하면:
+  - 스탠바이 인스턴스 때문에 DB 비용 2배
+  - 학습 프로젝트에는 과한 상시 지출
+
+시나리오 검증 시에만 켜면:
+  - 자동 failover 동작은 실증 완료 ✓
+  - 평소에는 단일 AZ 비용 유지 ✓
+  - Terraform 변수 하나로 on/off 재현 가능 ✓
+
+실무 적용 순서:
+  - 결제 DB부터 Multi-AZ 도입 (데이터 정합성 최우선)
+  - 회원 DB는 읽기 부하 증가 시 Read Replica와 함께 검토
 ```
 
 ---
