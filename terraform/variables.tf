@@ -11,3 +11,9 @@ variable "alert_email" {
   description = "Email address to receive CloudWatch alarm notifications"
   default     = "hyokyung403@gmail.com" 
 }
+
+variable "member_db_multi_az" {
+  type        = bool
+  description = "회원 DB Multi-AZ 활성화 (시나리오 5 failover 테스트용)"
+  default     = false
+}
