@@ -1,4 +1,3 @@
-cat > seed.py << 'EOF'
 """테이블 생성 + 샘플 데이터 시딩 (member DB, payment DB, DynamoDB cart)"""
 import os, json, boto3, pymysql
 
@@ -44,4 +43,3 @@ table = boto3.resource("dynamodb", region_name=REGION).Table(os.environ["CART_TA
 table.put_item(Item={"member_id": "1", "items": [
     {"product": "무선 키보드", "qty": 1}, {"product": "모니터암", "qty": 2}]})
 print("[OK] DynamoDB: member_id=1 장바구니 1건")
-EOF
