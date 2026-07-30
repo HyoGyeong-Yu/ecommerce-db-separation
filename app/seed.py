@@ -40,6 +40,8 @@ print("[OK] payment DB: payments 테이블 + 3건")
 
 # --- DynamoDB cart ---
 table = boto3.resource("dynamodb", region_name=REGION).Table(os.environ["CART_TABLE"])
-table.put_item(Item={"member_id": "1", "items": [
-    {"product": "무선 키보드", "qty": 1}, {"product": "모니터암", "qty": 2}]})
-print("[OK] DynamoDB: member_id=1 장바구니 1건")
+table.put_item(Item={"user_id": "1", "product_id": "P001",
+                     "product_name": "무선 키보드", "qty": 1})
+table.put_item(Item={"user_id": "1", "product_id": "P002",
+                     "product_name": "모니터암", "qty": 2})
+print("[OK] DynamoDB: user_id=1 장바구니 2건")

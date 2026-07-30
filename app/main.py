@@ -61,11 +61,12 @@ def get_payments():
         raise HTTPException(status_code=503, detail=f"payment DB error: {e}")
 
 
-@app.get("/cart/{member_id}")
-def get_cart(member_id: str):
+@app.get("/cart/{user_id}")
+def get_cart(user_id: str):
     try:
+        from boto3.dynamodb.conditions import Key
         table = dynamodb.Table(CART_TABLE)
-        res = table.get_item(Key={"member_id": member_id})
-        return {"domain": "cart", "data": res.get("Item", {})}
+        res = table.query(KeyConditionExpression=Key("user_id").eq(user_id))
+        return {"domain": "cart", "data": res.get("Items", [])}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"cart DB error: {e}")
