@@ -2,9 +2,10 @@
 
 # 앱 서버 SG
 resource "aws_security_group" "app" {
-  name   = "${var.project_name}-app-sg"
-  vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.project_name}-app-sg" }
+  name        = "${var.project_name}-app-sg"
+  description = "App servers: ingress 8000 from ALB only"
+  vpc_id      = aws_vpc.main.id
+  tags        = { Name = "${var.project_name}-app-sg" }
 }
 
 # 앱 SG 아웃바운드 — RDS / DynamoDB / Secrets Manager / 인터넷 접근용
@@ -16,9 +17,10 @@ resource "aws_vpc_security_group_egress_rule" "app_all" {
 
 # 회원 DB SG — 앱 서버에서만 3306 허용
 resource "aws_security_group" "member_db" {
-  name   = "${var.project_name}-member-db-sg"
-  vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.project_name}-member-db-sg" }
+  name        = "${var.project_name}-member-db-sg"
+  description = "Member RDS: ingress 3306 from app SG only"
+  vpc_id      = aws_vpc.main.id
+  tags        = { Name = "${var.project_name}-member-db-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "member_db_from_app" {
@@ -31,9 +33,10 @@ resource "aws_vpc_security_group_ingress_rule" "member_db_from_app" {
 
 # 결제 DB SG — 앱 서버에서만, 회원 DB SG와는 별도
 resource "aws_security_group" "payment_db" {
-  name   = "${var.project_name}-payment-db-sg"
-  vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.project_name}-payment-db-sg" }
+  name        = "${var.project_name}-payment-db-sg"
+  description = "Payment RDS: ingress 3306 from app SG only, isolated from member DB"
+  vpc_id      = aws_vpc.main.id
+  tags        = { Name = "${var.project_name}-payment-db-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "payment_db_from_app" {

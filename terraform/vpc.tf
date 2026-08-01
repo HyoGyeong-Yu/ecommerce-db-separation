@@ -1,4 +1,6 @@
 # VPC
+# VPC Flow Logs 미적용: 로그 수집 비용 대비 실익 낮음 (SG 최소권한 + CloudWatch 알람으로 커버)
+#tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -13,6 +15,9 @@ resource "aws_internet_gateway" "main" {
 }
 
 # Public Subnets — ALB / App EC2 용
+# 퍼블릭 IP 자동 할당은 의도된 설계: NAT 게이트웨이(월 $30+) 없이 앱 EC2의 아웃바운드 확보.
+# 인바운드는 SG로 차단 (ALB→8000만 허용). 실서비스라면 프라이빗 서브넷 + NAT 구성
+#tfsec:ignore:aws-ec2-no-public-ip-subnet
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)
   vpc_id                  = aws_vpc.main.id

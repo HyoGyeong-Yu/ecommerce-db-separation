@@ -7,6 +7,12 @@ resource "aws_launch_template" "app" {
   image_id      = data.aws_ssm_parameter.al2023.value
   instance_type = "t2.micro"
 
+  # IMDSv2 강제 — 토큰 없는 메타데이터 접근 차단 (SSRF 자격증명 탈취 방어)
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   vpc_security_group_ids = [aws_security_group.app.id]
 
   iam_instance_profile {
