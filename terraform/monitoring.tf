@@ -136,7 +136,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_cpu_high" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    InstanceId = aws_instance.app.id
+    AutoScalingGroupName = aws_autoscaling_group.app.name
   }
 
   tags = { Name = "ec2-cpu-alarm" }
@@ -155,8 +155,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_status_check_failed" {
   alarm_actions       = [aws_sns_topic.alerts.arn]
   treat_missing_data  = "notBreaching"
 
-  dimensions = {
-    InstanceId = aws_instance.app.id
+ dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.app.name
   }
 
   tags = { Name = "ec2-status-check-alarm" }

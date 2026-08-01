@@ -12,15 +12,16 @@ output "dynamodb_table_name" {
   description = "장바구니 DynamoDB 테이블명"
   value       = aws_dynamodb_table.cart.name
 }
-
-output "app_ec2_id" {
-  description = "앱 서버 인스턴스 ID (SSM 접속용)"
-  value       = aws_instance.app.id
+output "alb_dns_name" {
+  description = "ALB 접속 주소 (브라우저/k6 테스트용)"
+  value       = aws_lb.app.dns_name
 }
 
-output "app_ec2_public_ip" {
-  value = aws_instance.app.public_ip
+output "asg_name" {
+  description = "Auto Scaling Group 이름"
+  value       = aws_autoscaling_group.app.name
 }
+
 output "sns_topic_arn" {
   value       = aws_sns_topic.alerts.arn
   description = "SNS Topic ARN for CloudWatch Alarms"
