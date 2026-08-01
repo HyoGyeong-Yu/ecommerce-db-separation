@@ -3,7 +3,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = { Name = "${var.project_name}-vpc" }
+  tags                 = { Name = "${var.project_name}-vpc" }
 }
 
 # Internet Gateway
@@ -19,7 +19,7 @@ resource "aws_subnet" "public" {
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = var.azs[count.index]
   map_public_ip_on_launch = true
-  tags = { Name = "${var.project_name}-public-${count.index + 1}" }
+  tags                    = { Name = "${var.project_name}-public-${count.index + 1}" }
 }
 
 # Private Subnets — RDS 용 (외부 노출 차단)
@@ -28,7 +28,7 @@ resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.private_subnet_cidrs[count.index]
   availability_zone = var.azs[count.index]
-  tags = { Name = "${var.project_name}-private-${count.index + 1}" }
+  tags              = { Name = "${var.project_name}-private-${count.index + 1}" }
 }
 
 # Public Route Table → IGW
@@ -53,5 +53,5 @@ resource "aws_route_table_association" "public" {
 resource "aws_db_subnet_group" "private" {
   name       = "${var.project_name}-db-subnet-group"
   subnet_ids = aws_subnet.private[*].id
-  tags = { Name = "${var.project_name}-db-subnet-group" }
+  tags       = { Name = "${var.project_name}-db-subnet-group" }
 }

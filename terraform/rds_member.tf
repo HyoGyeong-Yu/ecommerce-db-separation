@@ -13,5 +13,5 @@ resource "aws_db_instance" "member" {
   multi_az               = var.member_db_multi_az
   apply_immediately      = true
   skip_final_snapshot    = true
-  tags = { Name = "member-db", Tier = "member" }
+  tags                   = { Name = "member-db", Tier = "member" }
 }

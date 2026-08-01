@@ -155,7 +155,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_status_check_failed" {
   alarm_actions       = [aws_sns_topic.alerts.arn]
   treat_missing_data  = "notBreaching"
 
- dimensions = {
+  dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.app.name
   }
 
