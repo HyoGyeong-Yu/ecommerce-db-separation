@@ -1,5 +1,7 @@
 # ecommerce-db-separation
 
+[![Terraform CI](https://github.com/HyoGyeong-Yu/ecommerce-db-separation/actions/workflows/terraform-ci.yml/badge.svg)](https://github.com/HyoGyeong-Yu/ecommerce-db-separation/actions/workflows/terraform-ci.yml)
+
 이커머스 서비스에서 **데이터베이스 분리 아키텍처의 필요성과 효과**를 실증하는 포트폴리오 프로젝트입니다.
 
 회원 정보, 결제 정보, 장바구니를 **의도적으로 분리된 DB에 저장**하고, 실제 HTTP 트래픽이 흐르는 상태에서 현실적인 장애를 주입해 **감지(MTTD) → 진단 → 복구(MTTR) → 재발 방지**의 전 과정을 숫자로 증명합니다.
@@ -29,8 +31,29 @@
 | 장애 유형 | SG 차단, IAM 거부 (인위적) | 커넥션 풀 고갈, 슬로우 쿼리, 스로틀링 (현실형) |
 | 단일 장애점 | EC2 1대 (SPOF) | ALB + Auto Scaling (2~4대, 자기치유) |
 | 복구 지표 | "RTO 3~10분" (목표값) | MTTD/MTTR 실측 타임라인 (측정값) |
+| 보안 검증 | 수동 확인 | tfsec 자동 스캔 (CI 통합) |
 
 v1 시나리오는 [`fault-scenarios-legacy/`](fault-scenarios-legacy/)에 보존되어 있습니다.
+
+---
+
+## 🛡️ 보안 자동화: 도구로 발견하고, 판단으로 처리한다
+
+Terraform 코드를 푸시할 때마다 GitHub Actions가 `fmt` → `validate` → `tfsec` 보안 스캔을 자동 실행합니다. 검문소를 통과하지 못한 코드는 main에 병합되지 않습니다.
+
+첫 스캔에서 **27개의 잠재적 문제**(CRITICAL 1, HIGH 9, MEDIUM 8, LOW 9)가 발견됐고, 이를 두 갈래로 나눠 처리했습니다.
+
+**실제 수정 (10개)** — 무료로 즉시 개선 가능한 항목
+- ALB invalid header 차단, EC2 IMDSv2 강제(자격증명 탈취 방어)
+- DynamoDB 저장 시 암호화, RDS 백업 보존 기간 7일, SG 설명 명시
+
+**사유를 명시한 예외 (12개)** — 끄는 게 아니라 "왜 안 하는지"를 코드에 기록
+- HTTPS 미적용 → 도메인/ACM 인증서 부재 (실서비스라면 443 리스너 + 리다이렉트)
+- RDS 스토리지 암호화 → 기존 인스턴스는 재생성 필요, 실측 데이터 보존 위해 스냅샷 마이그레이션 계획으로 대체
+- IAM DB 인증 → Secrets Manager 방식 채택 (설계 선택)
+- ALB 퍼블릭 노출 → 인터넷 대면 로드밸런서가 설계 의도
+
+LOW 등급 5개는 정보성으로 판단해 **심각도 임계값(MEDIUM 이상)**을 두어 빌드를 막지 않도록 설정했습니다. 보안 도구의 모든 경고를 맹목적으로 따르는 것이 아니라, 각 항목의 위험도와 비용을 판단해 처리하는 것이 실무의 접근이라 보았습니다.
 
 ---
 
