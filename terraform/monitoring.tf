@@ -101,16 +101,16 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_user_errors" {
   tags = { Name = "dynamodb-user-errors-alarm" }
 }
 
-resource "aws_cloudwatch_metric_alarm" "dynamodb_consumed_write_capacity" {
+resource "aws_cloudwatch_metric_alarm" "dynamodb_write_throttle" {
   alarm_name          = "${var.project_name}-dynamodb-write-throttle"
-  comparison_operator = "GreaterThanThreshold"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
-  metric_name         = "ConsumedWriteCapacityUnits"
+  metric_name         = "WriteThrottleEvents"
   namespace           = "AWS/DynamoDB"
   period              = "60"
   statistic           = "Sum"
-  threshold           = "500"
-  alarm_description   = "Alert when DynamoDB write capacity is high"
+  threshold           = "1"
+  alarm_description   = "Alert when DynamoDB write requests are throttled"
   alarm_actions       = [aws_sns_topic.alerts.arn]
   treat_missing_data  = "notBreaching"
 
@@ -118,7 +118,7 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_consumed_write_capacity" {
     TableName = aws_dynamodb_table.cart.name
   }
 
-  tags = { Name = "dynamodb-write-capacity-alarm" }
+  tags = { Name = "dynamodb-write-throttle-alarm" }
 }
 
 # SCENARIO 4: EC2 접근 불가
