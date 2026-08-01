@@ -2,9 +2,10 @@
 
 # ALB 보안그룹 — 외부에서 80 포트만 허용
 resource "aws_security_group" "alb" {
-  name   = "${var.project_name}-alb-sg"
-  vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.project_name}-alb-sg" }
+  name        = "${var.project_name}-alb-sg"
+  description = "ALB ingress 80 from internet, egress 8000 to app"
+  vpc_id      = aws_vpc.main.id
+  tags        = { Name = "${var.project_name}-alb-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
@@ -33,12 +34,15 @@ resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
 }
 
 # ALB 본체 — 퍼블릭 서브넷 2개(2a, 2c)에 걸침
+# 인터넷 대면 로드밸런서가 설계 의도 (뒤의 앱/DB는 SG로 격리)
+#tfsec:ignore:aws-elb-alb-not-public
 resource "aws_lb" "app" {
-  name               = "${var.project_name}-alb"
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
-  tags               = { Name = "${var.project_name}-alb" }
+  name                       = "${var.project_name}-alb"
+  load_balancer_type         = "application"
+  drop_invalid_header_fields = true
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = aws_subnet.public[*].id
+  tags                       = { Name = "${var.project_name}-alb" }
 }
 
 # 대상 그룹 — /health로 헬스체크
@@ -58,6 +62,8 @@ resource "aws_lb_target_group" "app" {
 }
 
 # 리스너 — 80으로 받아서 대상그룹(8000)으로 전달
+# HTTPS 미적용: 도메인/ACM 인증서 부재. 실서비스라면 443 리스너 + ACM + 80→443 리다이렉트
+#tfsec:ignore:aws-elb-http-not-used
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.app.arn
   port              = 80
