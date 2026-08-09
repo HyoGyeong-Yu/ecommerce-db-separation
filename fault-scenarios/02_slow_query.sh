@@ -1,3 +1,4 @@
+#!/bin/bash
 # ⚠️ EC2(SSM 세션)에서 실행 — mysql 클라이언트와 DB 접근 SG가 필요함
 
 source ./config.sh
@@ -15,6 +16,29 @@ SECRET=$(aws secretsmanager get-secret-value \
 DB_HOST=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin)['host'])")
 DB_USER=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin)['username'])")
 DB_PASS=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin)['password'])")
+
+# ----- [0] 부하용 테이블 준비 (없으면 생성 + 1만 행 시딩) -----
+# ⚠️ 이 블록은 AWS 리소스 삭제 이후 추가되어 실행 검증 미완료 (재구축 시 검증 필요)
+log_info "[0단계] load_test 테이블 준비 — 없으면 생성"
+mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" member_db -e "
+CREATE TABLE IF NOT EXISTS load_test (
+  id INT PRIMARY KEY,
+  pad VARCHAR(100)
+);
+INSERT IGNORE INTO load_test (id, pad)
+SELECT n, REPEAT('x', 100) FROM (
+  SELECT a.N + b.N*10 + c.N*100 + d.N*1000 + 1 AS n
+  FROM (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+        UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) a
+  CROSS JOIN (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+        UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) b
+  CROSS JOIN (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+        UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) c
+  CROSS JOIN (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+        UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) d
+) t;
+SELECT COUNT(*) AS load_test_rows FROM load_test;"
+log_success "load_test 준비 완료 (인덱스 없는 컬럼 조인용 — 1만 행)"
 
 # ----- [1] 장애 전 정상 상태 확인 -----
 log_info "[1단계] 장애 전 정상 상태 확인 — CPU 및 실행 중 쿼리"

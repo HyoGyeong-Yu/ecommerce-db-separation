@@ -13,7 +13,7 @@
 ```
 - 회원 / 결제 / 장바구니 데이터를 물리적으로 분리 → 장애 발생 시 영향 범위를 최소화
 - FastAPI 실서비스 계층 + k6 부하 위에서 현실적인 장애를 재현
-  (커넥션 풀 고갈, 슬로우 쿼리 폭주, DynamoDB 스로틀링)
+  (커넥션 슬롯 고갈, 슬로우 쿼리 폭주, DynamoDB 스로틀링)
 - 모든 장애에 MTTD/MTTR 실측 타임라인 기록 → "몇 분 만에 감지하고 복구했는가"를 숫자로 증명
 - 각 장애에 대한 Runbook 작성 → 실수와 교훈까지 포함해 문서화
 ```
@@ -28,7 +28,7 @@
 | | v1 | v2 (현재) |
 |---|---|---|
 | 애플리케이션 | 없음 (mysql CLI 확인) | FastAPI 3-도메인 API + k6 부하 |
-| 장애 유형 | SG 차단, IAM 거부 (인위적) | 커넥션 풀 고갈, 슬로우 쿼리, 스로틀링 (현실형) |
+| 장애 유형 | SG 차단, IAM 거부 (인위적) | 커넥션 슬롯 고갈, 슬로우 쿼리, 스로틀링 (현실형) |
 | 단일 장애점 | EC2 1대 (SPOF) | ALB + Auto Scaling (2~4대, 자기치유) |
 | 복구 지표 | "RTO 3~10분" (목표값) | MTTD/MTTR 실측 타임라인 (측정값) |
 | 보안 검증 | 수동 확인 | tfsec 자동 스캔 (CI 통합) |
@@ -89,7 +89,7 @@ graph TB
     SecretsManager["Secrets Manager<br/>(DB Credentials)"]
 
     EC2A -->|GetSecretValue| SecretsManager
-    EC2A -->|PutItem/GetItem| DynamoDB
+    EC2A -->|Query| DynamoDB
     EC2B --> SecretsManager
     EC2B --> DynamoDB
 
@@ -141,7 +141,12 @@ ecommerce-db-separation/
 │
 ├── fault-scenarios-legacy/  # v1 시나리오 보존 (SG 차단, IAM, EC2, Multi-AZ Failover)
 │
+├── .github/workflows/       # CI — terraform fmt → validate → tfsec
+│   └── terraform-ci.yml
+│
 ├── docs/
+│   ├── tradeoffs.md         # 분리 설계의 대가 (조회/정합성/비용/운영)
+│   ├── improvement-plan.md  # v1 → v2 실행 계획 원본
 │   └── screenshots/         # 스토리별 증거 스크린샷
 │       ├── api/                      # Phase 1 — API 구축 + k6 검증
 │       ├── alb-asg/01-self-healing/  # Phase 2 — 인스턴스 종료 → 자동 복구
@@ -181,8 +186,8 @@ k6 부하 테스트: 5,130 요청 / 성공률 100% / p95 37.92ms (임계 500ms)
 
 | # | 시나리오 | MTTD (감지) | MTTR (복구) | 런북 |
 |---|---|---|---|---|
-| 01 | RDS 커넥션 풀 고갈 | **1분 20초** | 약 12분 | [📖](fault-scenarios/runbook-01-connection-pool.md) |
-| 02 | 슬로우 쿼리 CPU 급등 | **약 7분** | KILL 후 약 2분 | [📖](fault-scenarios/runbook-02-slow-query.md) |
+| 01 | RDS 커넥션 슬롯 고갈 | **1분 20초** | 약 12분 | [📖](fault-scenarios/runbook-01-connection-pool.md) |
+| 02 | 슬로우 쿼리 CPU 급등 | **약 7분** | 2시간 30분 *(원인 인지 후 2분)* | [📖](fault-scenarios/runbook-02-slow-query.md) |
 | 03 | DynamoDB 쓰기 스로틀링 | **2분 10초** | **8분 41초** | [📖](fault-scenarios/runbook-03-dynamodb-throttle.md) |
 
 ```bash
@@ -300,11 +305,16 @@ terraform destroy
 
 ---
 
-## 📈 다음 단계
+## 📈 진행 상황
 
-- [ ] 트레이드오프 문서 (`docs/tradeoffs.md`) — 분리 설계의 대가: 크로스 도메인 조회, 트랜잭션 정합성, 비용
-- [ ] GitHub Actions CI/CD — terraform plan 자동화 + tfsec 보안 스캔
-- [ ] 포트폴리오 웹사이트
+**완료**
+- [x] 트레이드오프 문서 — [`docs/tradeoffs.md`](docs/tradeoffs.md) (크로스 도메인 조회, 트랜잭션 정합성, 비용, 운영 복잡도)
+- [x] GitHub Actions CI — `fmt` → `validate` → `tfsec` (MEDIUM 이상 차단)
+
+**진행 중 / 예정**
+- [ ] 포트폴리오 웹사이트 (GitHub Pages 이전 예정)
+- [ ] 앱 레벨 커넥션 풀 도입 (`DBUtils.PooledDB`) — 설계만 완료, AWS 리소스 삭제로 **실행 검증 미완료**
+- [ ] DynamoDB TTL 속성 `expires_at` 실제 기입 (테이블에 TTL은 설정됐으나 앱이 값을 넣지 않음)
 
 ---
 

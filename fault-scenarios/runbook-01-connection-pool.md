@@ -1,7 +1,9 @@
-# Runbook 01: RDS 커넥션 풀 고갈 (member-db)
+# Runbook 01: RDS 커넥션 슬롯 고갈 (member-db)
+
+> **용어 정정:** 이 앱(`app/main.py`)은 요청마다 `pymysql.connect()`로 새 연결을 만들며 애플리케이션 레벨 커넥션 풀이 없다. 따라서 이 장애는 "커넥션 풀 고갈"이 아니라 **RDS 인스턴스의 커넥션 슬롯(`max_connections`) 고갈**이다. 초기 문서는 풀 고갈로 표기했으나, 코드와 대조해 정정했다.
 
 ## 증상
-- member API(`/members/{id}`)만 503 반환 — payment / cart API는 정상 (도메인 분리로 장애 격리)
+- member API(`GET /members`)만 503 반환 — payment / cart API는 정상 (도메인 분리로 장애 격리)
 - CloudWatch `DatabaseConnections` 급등 (0 → 58)
 
 ## 실측 타임라인 (2026-08-01 KST)
@@ -33,8 +35,10 @@
 
 ## 재발 방지
 - 앱 커넥션 풀 상한 설정 (예: pool_size + max_overflow로 DB max_connections 이내 제한)
-- `DatabaseConnections` 알람 임계를 max_connections의 80%로 유지 (조기 감지)
+- `DatabaseConnections` 알람 임계를 `max_connections`의 80% 수준으로 유지 (조기 감지)
+  - 현재 알람 임계: `> 50` (`terraform/monitoring.tf`)
+  - `max_connections` 실측값 **미확인**. RDS MySQL 기본값은 `{DBInstanceClassMemory/12582880}` 공식으로 산출되며, 파라미터 그룹을 리포에 포함하지 않아 구체 수치는 확정하지 않았다. 재구축 시 `SHOW VARIABLES LIKE 'max_connections';` 로 확인 후 기입한다.
 
 ## 근거
-- 스크린샷: `docs/screenshots/connection-pool/01_injection_503.png` ~ `04_alarm_in_alarm.png`
+- 스크린샷: `docs/screenshots/fault-01-connection-pool/01_injection_503.png` ~ `04_alarm_in_alarm.png` (4장)
 - 수치 근거: CloudWatch 알람 히스토리 + `get-metric-statistics` (0→58→0 추이)

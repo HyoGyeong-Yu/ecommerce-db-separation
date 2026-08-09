@@ -1,3 +1,4 @@
+#!/bin/bash
 # ⚠️ EC2(SSM 세션)에서 실행 — mysql 클라이언트와 DB 접근 SG가 필요함
 
 source ./config.sh

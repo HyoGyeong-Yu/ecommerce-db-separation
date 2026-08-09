@@ -12,6 +12,15 @@
 | 잔여 세션 정리 누락 → 장기 방치 | 13:25~15:53 | — |
 | 원인 발견 → KILL 스크립트 실행 → 알람 OK | 15:55:10 | **KILL 후 정상화 약 2분** |
 
+**MTTR 표기 — 두 기준 병기**
+
+| 기준 | 값 | 설명 |
+|---|---|---|
+| 주입 → 알람 OK (다른 시나리오와 동일 기준) | **약 2시간 30분** | 잔여 세션 방치로 장애가 지속된 실제 소요 |
+| 원인 인지 → 정상화 (조치 기준) | **약 2분** | 원인을 안 뒤의 순수 복구 시간 |
+
+두 값의 차이가 곧 이 시나리오의 교훈이다. 유리한 쪽만 쓰지 않고 둘 다 남긴다.
+
 ## 진단 절차
 1. CloudWatch에서 CPU 100% + `DatabaseConnections` 정상 조합 확인 → 내부 쿼리 의심
 2. `SHOW FULL PROCESSLIST` → Time이 수천 초인 장기 실행 쿼리 다수 발견
@@ -34,4 +43,4 @@
 
 ## 근거
 - CloudWatch 알람 히스토리 (In alarm 13:25:02 → OK 15:55:10)
-- 스크린샷: docs/screenshots/ 내 슬로우 쿼리 폴더 (경로 확인 후 기입)
+- 스크린샷: `docs/screenshots/fault-02-slow-query/01_cpu_spike.png`, `02_explain_diagnosis.png`, `03_alarm_in_alarm.png` (3장)

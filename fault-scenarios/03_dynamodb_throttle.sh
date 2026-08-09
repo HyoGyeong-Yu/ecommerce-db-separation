@@ -1,3 +1,4 @@
+#!/bin/bash
 # ⚠️ 로컬 또는 EC2에서 실행 가능 (AWS CLI만 필요)
 # ⚠️ 용량 변경(Provisioned ↔ On-demand)은 CLI가 아니라 Terraform으로 수행
 #    → CLI로 바꾸면 Terraform state 불일치 발생 (2026-08-01 실제 경험)

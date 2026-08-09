@@ -37,5 +37,5 @@
 - 용량 변경은 콘솔/CLI 수동 조작 대신 Terraform으로만 수행 (state 불일치 방지)
 
 ## 근거
-- 스크린샷: `docs/screenshots/fault-dynamodb/01~05-2` (8장)
+- 스크린샷: `docs/screenshots/fault-03-dynamodb/01_wcu1_setup.png` ~ `05-2_alarm_inalarm_history.png` (8장)
 - 복구 증거: 터미널 텍스트 (apply 완료 15:46:20, 쓰기 성공 15:46:22)
