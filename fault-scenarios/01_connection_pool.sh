@@ -7,7 +7,7 @@ echo "=========================================="
 echo " 시나리오 1: 커넥션 풀 고갈 (member-db)"
 echo "=========================================="
 
-CONN_COUNT=50        # 점유할 커넥션 수
+CONN_COUNT=50        # 점유할 커넥션 수 (기존 앱/모니터링 세션과 합쳐 실측 58까지 올라감)
 HOLD_SECONDS=600     # 각 커넥션 유지 시간(초)
 
 # ----- DB 접속 정보 로드 (Secrets Manager) -----
@@ -45,7 +45,7 @@ log_info "[3단계] 증거 캡처"
 log_warning "📸 member API 호출 → 503 응답 화면"
 log_warning "📸 payment/cart API 호출 → 200 정상 (격리 증명)"
 log_warning "📸 CloudWatch DatabaseConnections 급등 그래프"
-log_warning "📸 알람 member-db-high-connections In alarm 화면"
+log_warning "📸 알람 ecommerce-portfolio-member-db-high-connections In alarm 화면"
 
 read -p "▶ 증거 캡처 끝났으면 복구하려면 Enter... "
 

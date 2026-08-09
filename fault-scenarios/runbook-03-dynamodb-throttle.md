@@ -13,7 +13,7 @@
 | 원인: 알람이 잘못된 메트릭 감시 중 발견 | — | — |
 | Terraform으로 알람 수정 (`WriteThrottleEvents >= 1`) | — | — |
 | 3차 주입(확정) 시작 → 첫 THROTTLED | 15:37:41 → 15:37:55 | — |
-| 알람 In alarm | 15:39:51 | **MTTD 2분 10초** |
+| 알람 `ecommerce-portfolio-dynamodb-write-throttle` In alarm | 15:39:51 | **MTTD 2분 10초** |
 | 복구 apply (On-demand 복귀) → 쓰기 정상화 | 15:46:20 → 15:46:22 | **MTTR 8분 41초** (주입 기준) |
 
 ## 핵심 교훈: 장애는 났는데 모니터링이 침묵했다

@@ -321,4 +321,4 @@ terraform destroy
 ## 📧 Contact
 
 - GitHub: [HyoGyeong-Yu](https://github.com/HyoGyeong-Yu)
-- Portfolio: ecommerce-db-separation
+- Portfolio: [ecommerce-db-separation](https://github.com/HyoGyeong-Yu/ecommerce-db-separation)

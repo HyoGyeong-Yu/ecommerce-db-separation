@@ -9,8 +9,8 @@
 ## 실측 타임라인 (2026-08-01 KST)
 | 이벤트 | 시각 | 소요 |
 |---|---|---|
-| 장애 주입 — SLEEP 쿼리로 커넥션 58개 점유 | 12:55 | — |
-| 알람 `member-db-high-connections` In alarm | 12:56:19 | **MTTD 1분 20초** |
+| 장애 주입 — SLEEP 쿼리로 커넥션 점유 (스크립트 50개 + 기존 앱/모니터링 세션 = 총 58) | 12:55 | — |
+| 알람 `ecommerce-portfolio-member-db-high-connections` In alarm | 12:56:19 | **MTTD 1분 20초** |
 | 커넥션 정상화 (58 → 0) | 13:07 | — |
 | 알람 OK 복귀 | 13:08:19 | **MTTR 약 12분** (주입 기준) |
 
@@ -27,8 +27,11 @@
 1. 점유 세션 강제 종료:
 ```sql
    SELECT CONCAT('KILL ', id, ';') FROM information_schema.processlist
-   WHERE command='Sleep' OR info LIKE '%SLEEP%';
+   WHERE info LIKE '%SLEEP%';
    -- 출력된 KILL 문 실행
+   -- ⚠️ command='Sleep' 조건은 쓰지 말 것.
+   --    대기 상태의 정상 세션까지 포함되어 진단 중인 본인 접속도 끊긴다.
+   --    실제 주입 세션만 골라내려면 info(실행 쿼리문) 기준으로 필터해야 한다.
 ```
 2. 신규 접속 성공 확인 → member API 200 복귀 확인
 3. 알람 OK 전환 확인

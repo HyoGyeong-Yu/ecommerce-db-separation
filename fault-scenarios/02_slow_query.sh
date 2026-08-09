@@ -61,7 +61,7 @@ log_error "슬로우 쿼리 실행됨 → CPU 급등 유도"
 # ----- [3] 증거 캡처 -----
 log_info "[3단계] 증거 캡처"
 log_warning "📸 CloudWatch CPUUtilization 급등 그래프"
-log_warning "📸 알람 member-db-cpu-high In alarm 화면"
+log_warning "📸 알람 ecommerce-portfolio-member-db-cpu-high In alarm 화면"
 log_warning "📸 SHOW FULL PROCESSLIST — 장기 실행 쿼리 목록"
 log_warning "📸 EXPLAIN 결과 — 풀스캔 확인"
 

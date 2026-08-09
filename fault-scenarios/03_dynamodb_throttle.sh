@@ -60,7 +60,7 @@ log_error "주입 종료: $(date '+%F %T')"
 log_info "[3단계] 증거 캡처"
 log_warning "📸 터미널의 THROTTLED 에러 출력"
 log_warning "📸 CloudWatch WriteThrottleEvents 메트릭 그래프"
-log_warning "📸 알람 dynamodb-write-throttle In alarm 화면"
+log_warning "📸 알람 ecommerce-portfolio-dynamodb-write-throttle In alarm 화면"
 log_warning "📸 member/payment API 정상 응답 (격리 증명)"
 
 read -p "▶ 증거 캡처 끝났으면 복구하려면 Enter... "
