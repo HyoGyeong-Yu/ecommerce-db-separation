@@ -320,26 +320,31 @@ terraform destroy
 ## 알려진 한계 및 개선 계획
 
 ### 재현 범위
-Terraform으로 재현되는 것은 **인프라 계층**(VPC, RDS 인스턴스, DynamoDB 테이블,
-ALB/ASG, IAM, CloudWatch)까지다. **DB 스키마와 애플리케이션 배포는 현재
-Terraform 범위 밖**이며, 초기 구성 시 수동으로 수행했다.
+Terraform으로 재현되는 것은 인프라 계층(VPC, RDS 인스턴스, DynamoDB 테이블,
+ALB/ASG, IAM, CloudWatch)이며, **애플리케이션 배포는 Launch Template의
+user_data + systemd로 코드화**되어 있어 ASG가 새 인스턴스를 띄우면 자동 설치·실행된다.
+ALB 헬스체크도 포트가 아닌 애플리케이션 엔드포인트(`/health`)를 검사한다.
 
-### 왜 Terraform에 넣지 않았나
+현재 코드 범위 밖인 것은 **RDS 스키마(테이블 생성)** 한 가지다.
+초기 구성 시 수동으로 수행했으며, 재배포 시 payment/member 테이블이 비어 있게 된다.
+
+### 왜 Terraform이나 user_data에 넣지 않았나
 인프라(무상태)와 데이터(유상태)는 수명주기가 다르다. Terraform은 "상태가 다르면
-재생성"하는 도구라 스키마에 적용하면 데이터 손실 위험이 있다. 또한 스키마
-마이그레이션은 **멱등성**과 **단일 실행**이 보장돼야 하는데, ASG의 user_data에
-넣으면 스케일아웃 시 여러 인스턴스가 동시에 실행해 충돌한다.
+재생성"하는 도구라 스키마에 적용하면 데이터 손실 위험이 있다.
+user_data도 부적절하다 — ASG 스케일아웃 시 여러 인스턴스가 동시에
+마이그레이션을 실행해 충돌한다. 마이그레이션은 **멱등성**과 **단일 실행**이
+보장되는 파이프라인 단계에 속한다.
 
 ### 개선 방향
-배포 파이프라인을 다음 단계로 분리한다.
+배포 파이프라인에 마이그레이션 단계를 추가한다.
 
-terraform apply → DB 마이그레이션(Alembic) → 앱 배포 → health check
+`terraform apply` → **DB 마이그레이션(Alembic)** → 앱 배포 → health check
 
-DynamoDB(cart)는 스키마리스라 마이그레이션 대상이 아니다.
+DynamoDB(cart)는 스키마리스라 대상이 아니다. member/payment RDS 두 개만 해당된다.
 
 ### 완료 판정 기준
 `terraform destroy` → `terraform apply` 후 수동 개입 없이
-`/health/member`, `/health/payment`, `/health/cart` 세 개가 모두 200을 반환하면 완료.
+`/members`, `/payments`, `/cart/{id}` 세 개가 모두 정상 데이터를 반환하면 완료.
 
 ---
 
