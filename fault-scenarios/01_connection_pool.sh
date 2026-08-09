@@ -19,9 +19,12 @@ DB_USER=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin
 DB_PASS=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin)['password'])")
 
 # ----- [1] 장애 전 정상 상태 확인 -----
-log_info "[1단계] 장애 전 정상 상태 확인"
+log_info "[1단계] 장애 전 정상 상태 확인 — 커넥션 상한과 현재 접속 수"
+# 상한(max_connections)은 SHOW VARIABLES, 현재 접속 수는 SHOW STATUS로 조회한다.
+# 초기 실행 때 상한 조회를 누락해 런북에 근거를 남기지 못했음 → 문서 감사 후 추가
 mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
-  -e "SHOW STATUS LIKE 'Threads_connected';"
+  -e "SHOW VARIABLES LIKE 'max_connections'; SHOW STATUS LIKE 'Threads_connected';"
+log_warning "📸 위 출력(상한 + 현재 접속 수) — 런북 '커넥션 한계 산정 근거' 표의 출처"
 log_info "현재 커넥션 수가 한 자릿수면 정상 상태"
 
 read -p "▶ 장애를 발생시키려면 Enter... "

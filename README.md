@@ -168,7 +168,7 @@ ecommerce-db-separation/
 FastAPI 3개 도메인 API에 k6로 실제 HTTP 트래픽을 흘려 검증했습니다.
 
 ```
-k6 부하 테스트: 5,130 요청 / 성공률 100% / p95 37.92ms (임계 500ms)
+k6 부하 테스트: 5,130 요청 / 성공률 100% / p95 37.92ms (임계 3000ms)
 장애 주입 시: member API만 5xx, payment·cart API는 정상 → 물리 분리로 blast radius 최소화 실증
 ```
 
