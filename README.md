@@ -317,6 +317,32 @@ terraform destroy
 
 ---
 
+## 알려진 한계 및 개선 계획
+
+### 재현 범위
+Terraform으로 재현되는 것은 **인프라 계층**(VPC, RDS 인스턴스, DynamoDB 테이블,
+ALB/ASG, IAM, CloudWatch)까지다. **DB 스키마와 애플리케이션 배포는 현재
+Terraform 범위 밖**이며, 초기 구성 시 수동으로 수행했다.
+
+### 왜 Terraform에 넣지 않았나
+인프라(무상태)와 데이터(유상태)는 수명주기가 다르다. Terraform은 "상태가 다르면
+재생성"하는 도구라 스키마에 적용하면 데이터 손실 위험이 있다. 또한 스키마
+마이그레이션은 **멱등성**과 **단일 실행**이 보장돼야 하는데, ASG의 user_data에
+넣으면 스케일아웃 시 여러 인스턴스가 동시에 실행해 충돌한다.
+
+### 개선 방향
+배포 파이프라인을 다음 단계로 분리한다.
+
+terraform apply → DB 마이그레이션(Alembic) → 앱 배포 → health check
+
+DynamoDB(cart)는 스키마리스라 마이그레이션 대상이 아니다.
+
+### 완료 판정 기준
+`terraform destroy` → `terraform apply` 후 수동 개입 없이
+`/health/member`, `/health/payment`, `/health/cart` 세 개가 모두 200을 반환하면 완료.
+
+---
+
 ## 📧 Contact
 
 - GitHub: [HyoGyeong-Yu](https://github.com/HyoGyeong-Yu)
