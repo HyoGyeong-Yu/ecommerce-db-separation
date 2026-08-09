@@ -4,7 +4,7 @@
 source ./config.sh
 
 echo "=========================================="
-echo " 시나리오 1: 커넥션 풀 고갈 (member-db)"
+echo " 시나리오 1: 커넥션 슬롯 고갈 (member-db)"
 echo "=========================================="
 
 CONN_COUNT=50        # 점유할 커넥션 수 (기존 앱/모니터링 세션과 합쳐 실측 58까지 올라감)
@@ -62,4 +62,4 @@ log_info "[5단계] 복구 검증 — 커넥션 수 정상 확인"
 mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
   -e "SHOW STATUS LIKE 'Threads_connected';"
 log_warning "📸 알람 OK 복귀 + member API 200 화면"
-log_success "✅ 시나리오 1 완료 — 커넥션 풀 정상화"
+log_success "✅ 시나리오 1 완료 — 커넥션 슬롯 정상화"
